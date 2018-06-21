@@ -54,21 +54,51 @@ for mission_uuid in database:
         observation = step['observation'].strip('[]').split(' ')
         observation = np.asarray(observation, dtype=np.float64, order='C')
         print(observation)
-
-        action = step['action']
-        if 'DROP_PAYLOAD' in action:
-            print("BUZZ")
-        else:
-            print(action)
+        chunk.append('pos_x_lon')
+        chunk.append(observation[0])
+        chunk.append('pos_y_lat')
+        chunk.append(observation[1])
+        chunk.append('altitude')
+        chunk.append(observation[2])
+        current_altidude = int(observation[2])
         environment = step['environment']
         env = yaml.load(environment)
+        print(env['distance_to_target'])
+        chunk.append('distance_to_hiker')
+        chunk.append(env['distance_to_target'])
         print(env)
+        action = step['action']
+        print(action)
+        if 'DROP_PAYLOAD' in action:
+            chunk.append('altitude_change')
+            chunk.append(head_to_values[2] - current_altidude)
+            chunk.append('drop_payload')
+            chunk.append(1)
+
+        elif 'HEAD_TO' in action:
+            x = action[action.find('HEAD_TO,')+9:action.find(')')]
+            head_to_values = [int(n) for n in x.split(',')]
+            chunk.append('altitude_change')
+            chunk.append(head_to_values[2] - current_altidude)
+            chunk.append('drop_payload')
+            chunk.append(0)
+
+
+
+
+        else:
+            chunk.append('altitude_change')
+            chunk.append(0)
+            chunk.append('drop_payload')
+            chunk.append(0)
+
+        print(chunk)
+
         #could detect change in altitude if current 'alt'
         #is greater than HEAD_TO altitude value
 
 
 
-
-
+print(mission_uuid)
 
 

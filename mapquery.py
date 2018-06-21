@@ -18,4 +18,6 @@ mavsim_server = ('127.0.0.1', 32786)
 send_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 #sent = sock.sendto(b'(\'TELEMETRY\', \'SET_MULTICAST\', \'ON\')', server_address)
-sent = send_sock.sendto(b'(\'TELEMETRY\', \'ADD_LISTENER\', \'127.0.0.1\', 9027, 0)', mavsim_server)
+#sent = send_sock.sendto(b'(\'TELEMETRY\', \'ADD_LISTENER\', \'127.0.0.1\', 9027, 0)', mavsim_server)
+
+def terrain_request(lat=0,lon=0,width=5,height=5):
