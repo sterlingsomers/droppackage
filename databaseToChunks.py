@@ -4,6 +4,7 @@ import numpy as np
 import ast
 import json
 import yaml
+import mapquery
 
 con = psycopg2.connect(dbname='apm_missions',user='postgres',password='sterling',host='localhost',port=32768)
 cur = con.cursor()
@@ -46,59 +47,77 @@ with open(filenumber + '.dict', 'wb') as handle:
 
 print("pickled the database to dictionary as {}.dict".format(filenumber))
 
-list_of_chunks_as_lists = []
-for mission_uuid in database:
-    for step in database[mission_uuid]:
-        chunk = []
-        #print(step['observation'])
-        observation = step['observation'].strip('[]').split(' ')
-        observation = np.asarray(observation, dtype=np.float64, order='C')
-        print(observation)
-        chunk.append('pos_x_lon')
-        chunk.append(observation[0])
-        chunk.append('pos_y_lat')
-        chunk.append(observation[1])
-        chunk.append('altitude')
-        chunk.append(observation[2])
-        current_altidude = int(observation[2])
-        environment = step['environment']
-        env = yaml.load(environment)
-        print(env['distance_to_target'])
-        chunk.append('distance_to_hiker')
-        chunk.append(env['distance_to_target'])
-        print(env)
-        action = step['action']
-        print(action)
-        if 'DROP_PAYLOAD' in action:
-            chunk.append('altitude_change')
-            chunk.append(head_to_values[2] - current_altidude)
-            chunk.append('drop_payload')
-            chunk.append(1)
+def step_by_step():
+    '''a state-by-state represenation building (incomplete...)'''
+    dict_of_chunks_as_lists = {}
+    for mission_uuid in database:
+        if not mission_uuid in dict_of_chunks_as_lists:
+            dict_of_chunks_as_lists[mission_uuid] = []
+        for step in database[mission_uuid]:
+            chunk = []
+            #print(step['observation'])
+            observation = step['observation'].strip('[]').split(' ')
+            observation = np.asarray(observation, dtype=np.float64, order='C')
+            #print(observation)
+            chunk.append('pos_x_lon')
+            chunk.append(observation[0])
+            chunk.append('pos_y_lat')
+            chunk.append(observation[1])
+            chunk.append('altitude')
+            chunk.append(observation[2])
+            current_altidude = int(observation[2])
+            environment = step['environment']
+            env = yaml.load(environment)
+            #print(env['distance_to_target'])
+            chunk.append('distance_to_hiker')
+            chunk.append(env['distance_to_target'])
+            #print(env)
+            action = step['action']
+            #print(action)
+            if 'DROP_PAYLOAD' in action:
+                chunk.append('altitude_change')
+                chunk.append(head_to_values[2] - current_altidude)
+                chunk.append('drop_payload')
+                chunk.append(1)
 
-        elif 'HEAD_TO' in action:
-            x = action[action.find('HEAD_TO,')+9:action.find(')')]
-            head_to_values = [int(n) for n in x.split(',')]
-            chunk.append('altitude_change')
-            chunk.append(head_to_values[2] - current_altidude)
-            chunk.append('drop_payload')
-            chunk.append(0)
-
-
-
-
-        else:
-            chunk.append('altitude_change')
-            chunk.append(0)
-            chunk.append('drop_payload')
-            chunk.append(0)
-
-        print(chunk)
-
-        #could detect change in altitude if current 'alt'
-        #is greater than HEAD_TO altitude value
+            elif 'HEAD_TO' in action:
+                x = action[action.find('HEAD_TO,')+9:action.find(')')]
+                head_to_values = [int(n) for n in x.split(',')]
+                chunk.append('altitude_change')
+                chunk.append(head_to_values[2] - current_altidude)
+                chunk.append('drop_payload')
+                chunk.append(0)
 
 
 
-print(mission_uuid)
+
+            else:
+                chunk.append('altitude_change')
+                chunk.append(0)
+                chunk.append('drop_payload')
+                chunk.append(0)
+
+            #print(chunk)
+            dict_of_chunks_as_lists[mission_uuid].append(chunk)
+
+    return dict_of_chunks_as_lists
 
 
+
+
+
+
+def chunk_by_environment_and_drop():
+    '''One chunk per mission. Where it dropped, plus environment near hiker'''
+
+    #First get the last observation from each mission
+    #get all the step-by-step chunks, and get the last one from each mission
+    dict_of_chunks = step_by_step()
+    #print(dict_of_chunks)
+    chunks = [dict_of_chunks[chunks][-1] for chunks in dict_of_chunks]
+
+
+
+
+
+chunk_by_environment_and_drop()
