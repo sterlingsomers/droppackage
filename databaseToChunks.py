@@ -1,7 +1,7 @@
 import psycopg2
 import pickle
 import numpy as np
-
+import ast
 
 con = psycopg2.connect(dbname='apm_missions',user='postgres',password='sterling',host='localhost',port=32768)
 cur = con.cursor()
@@ -48,8 +48,9 @@ list_of_chunks_as_lists = []
 for mission_uuid in database:
     for step in database[mission_uuid]:
         chunk = []
-        observation = np.fromstring(step['observation'])
-        print(type(observation))
+        #print(step['observation'])
+        observation = step['observation'].strip('[]').split(' ')
+        observation = np.asarray(observation, dtype=np.float64, order='C')
 
 
         action = step['action']
