@@ -2,6 +2,8 @@ import psycopg2
 import pickle
 import numpy as np
 import ast
+import json
+import yaml
 
 con = psycopg2.connect(dbname='apm_missions',user='postgres',password='sterling',host='localhost',port=32768)
 cur = con.cursor()
@@ -51,11 +53,18 @@ for mission_uuid in database:
         #print(step['observation'])
         observation = step['observation'].strip('[]').split(' ')
         observation = np.asarray(observation, dtype=np.float64, order='C')
-
+        print(observation)
 
         action = step['action']
+        if 'DROP_PAYLOAD' in action:
+            print("BUZZ")
+        else:
+            print(action)
         environment = step['environment']
-        reward = step['reward']
+        env = yaml.load(environment)
+        print(env)
+        #could detect change in altitude if current 'alt'
+        #is greater than HEAD_TO altitude value
 
 
 
