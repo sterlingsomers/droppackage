@@ -38,7 +38,4 @@ def terrain_request(lat=0,lon=0,width=5,height=5):
         data,address = send_sock.recvfrom(1024)
         terrain_by_pair.append(data.decode('utf-8'))
 
-    print(terrain_by_pair)
-
-
-terrain_request(70,50)
+    return terrain_by_pair

@@ -6,9 +6,12 @@ import json
 import yaml
 import mapquery
 
+#To run this, make sure you have the file number and set the file number and arguments to chunk_by_environment appropriately
+#70, 50 --> 070050 and
+
 con = psycopg2.connect(dbname='apm_missions',user='postgres',password='sterling',host='localhost',port=32768)
 cur = con.cursor()
-filenumber = '070050'
+filenumber = '110050'
 uuid_list = pickle.load(open(filenumber + '.p', "rb"))
 
 database = {}
@@ -107,7 +110,7 @@ def step_by_step():
 
 
 
-def chunk_by_environment_and_drop():
+def chunk_by_environment_and_drop(lat,lon):
     '''One chunk per mission. Where it dropped, plus environment near hiker'''
 
     #First get the last observation from each mission
@@ -116,8 +119,43 @@ def chunk_by_environment_and_drop():
     #print(dict_of_chunks)
     chunks = [dict_of_chunks[chunks][-1] for chunks in dict_of_chunks]
 
+    #get the area around the hiker
+    area_around_hiker = mapquery.terrain_request(lat=lat,lon=lon)
+
+    area_around_hiker = [eval(x) for x in area_around_hiker]
+    #print(area_around_hiker)
+
+    #pine_tree = 0
+    terrain_features = {'trees': 0, 'altitude_1': 0, 'altitude_2': 0, 'altitude_3': 0}
+
+    for terrain in area_around_hiker:
+        if 'pine trees' in terrain or 'pine tree' in terrain:
+            terrain_features['trees'] += 1
+            terrain_features['altitude_1'] += 1
+        if terrain[4] == 1 and 'pine trees' not in terrain and 'pine tree' not in terrain:
+            terrain_features['altitude_1'] += 1
+
+
+    terrain_chunk_format = []
+    for key,value in terrain_features.items():
+
+        terrain_chunk_format.append(key)
+        terrain_chunk_format.append(value)
+
+
+    #extend each chunk in chunks with the terrain features for that area
+    return_chunks = []
+    for chunk in chunks:
+        chunk.extend(terrain_chunk_format)
+        return_chunks.append(chunk)
+
+    return return_chunks
 
 
 
+print(chunk_by_environment_and_drop(110,50))
 
-chunk_by_environment_and_drop()
+
+
+with open(filenumber + '.chunks', 'wb') as handle:
+    pickle.dump(chunk_by_environment_and_drop(110,50), handle)
