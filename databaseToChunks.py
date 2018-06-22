@@ -8,10 +8,11 @@ import mapquery
 
 #To run this, make sure you have the file number and set the file number and arguments to chunk_by_environment appropriately
 #70, 50 --> 070050 and
+#also need a mission started in mavsim -> just go to exigisi, press new, and accept default is fine.
 
 con = psycopg2.connect(dbname='apm_missions',user='postgres',password='sterling',host='localhost',port=32768)
 cur = con.cursor()
-filenumber = '110050'
+filenumber = '130050'
 uuid_list = pickle.load(open(filenumber + '.p', "rb"))
 
 database = {}
@@ -126,14 +127,21 @@ def chunk_by_environment_and_drop(lat,lon):
     #print(area_around_hiker)
 
     #pine_tree = 0
-    terrain_features = {'trees': 0, 'altitude_1': 0, 'altitude_2': 0, 'altitude_3': 0}
+    terrain_features = {'trees': 0, 'grass': 0, 'altitude_0': 0, 'altitude_1': 0, 'altitude_2': 0, 'altitude_3': 0}
 
     for terrain in area_around_hiker:
+        print(terrain)
         if 'pine trees' in terrain or 'pine tree' in terrain:
             terrain_features['trees'] += 1
             terrain_features['altitude_1'] += 1
         if terrain[4] == 1 and 'pine trees' not in terrain and 'pine tree' not in terrain:
             terrain_features['altitude_1'] += 1
+        if terrain[4] == 0 and 'grass' in terrain:
+            terrain_features['grass'] += 1
+            terrain_features['altitude_0'] += 1
+        if terrain[4] == 0 and not 'grass' in terrain:
+            terrain_features['altitude_0'] += 1
+
 
 
     terrain_chunk_format = []
@@ -158,4 +166,4 @@ print(chunk_by_environment_and_drop(110,50))
 
 
 with open(filenumber + '.chunks', 'wb') as handle:
-    pickle.dump(chunk_by_environment_and_drop(110,50), handle)
+    pickle.dump(chunk_by_environment_and_drop(130,50), handle)
