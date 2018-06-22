@@ -13,6 +13,7 @@ import mapquery
 con = psycopg2.connect(dbname='apm_missions',user='postgres',password='sterling',host='localhost',port=32768)
 cur = con.cursor()
 filenumber = '130050'
+latitude, longitude = 130, 50
 uuid_list = pickle.load(open(filenumber + '.p', "rb"))
 
 database = {}
@@ -63,6 +64,8 @@ def step_by_step():
             observation = step['observation'].strip('[]').split(' ')
             observation = np.asarray(observation, dtype=np.float64, order='C')
             #print(observation)
+            chunk.append('isa')
+            chunk.append('drop_point')
             chunk.append('pos_x_lon')
             chunk.append(observation[0])
             chunk.append('pos_y_lat')
@@ -130,7 +133,7 @@ def chunk_by_environment_and_drop(lat,lon):
     terrain_features = {'trees': 0, 'grass': 0, 'altitude_0': 0, 'altitude_1': 0, 'altitude_2': 0, 'altitude_3': 0}
 
     for terrain in area_around_hiker:
-        print(terrain)
+        #print(terrain)
         if 'pine trees' in terrain or 'pine tree' in terrain:
             terrain_features['trees'] += 1
             terrain_features['altitude_1'] += 1
@@ -161,9 +164,9 @@ def chunk_by_environment_and_drop(lat,lon):
 
 
 
-print(chunk_by_environment_and_drop(110,50))
+#print(chunk_by_environment_and_drop(110,50))
 
 
 
 with open(filenumber + '.chunks', 'wb') as handle:
-    pickle.dump(chunk_by_environment_and_drop(130,50), handle)
+    pickle.dump(chunk_by_environment_and_drop(latitude,longitude), handle)
