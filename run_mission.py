@@ -8,6 +8,7 @@ import yaml
 import uuid
 import subprocess
 import pickle
+import itertools
 
 
 def ListToFormattedString(alist):
@@ -24,6 +25,8 @@ uuids = []
 hiker_positions_x = [70, 90, 110, 130, 150, 170, 190]
 hiker_positions_y = [50, 70, 90, 110]
 
+combinations = list(itertools.product(hiker_positions_x,hiker_positions_y))
+#TODO use this combination format instead.
 
 last_hiker_x = 25
 last_hiker_y = 33
