@@ -16,6 +16,7 @@ cur = con.cursor()
 hiker_positions_x = [70, 90, 110, 130, 150, 170, 190]
 hiker_positions_y = [50, 70, 90, 110]
 #file_name = "{}-{}.p".format(x,y)
+#Todo convert this to combinations as well.
 
 #filenumber = '150050'
 #latitude, longitude = 150, 50

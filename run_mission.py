@@ -29,15 +29,17 @@ combinations = list(itertools.product(hiker_positions_x,hiker_positions_y))
 #TODO use this combination format instead.
 #sed -i 3s:.*:"  <hiker_position>190, 110</hiker_position>": /cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v0.xml
 
-
+combinations = [[100,350],[100,450],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70],[350,90],[430,110]]
 
 #last_hiker_x = 25
 #last_hiker_y = 33
 #need to edit the xml file to those values: 25, 33
 
 for combination in combinations:
+    print("COM",combination)
     sed_command = "3s:.*:  <hiker_position>{}, {}</hiker_position>:".format(combination[0],combination[1])
-
+    subprocess.run(["docker", "exec", "q-agent", "sed", "-i", sed_command,
+                    "/cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v1.xml"])
 
 
     for i in range(1):
@@ -87,8 +89,8 @@ for combination in combinations:
 
 
 
-        subprocess.run(["docker", "exec", "q-agent", "python3", "main.py", "--env-id", "apl-nav-godiland-v0", "--drop_payload_agent",
-             "--qfunction", "./q_functions/qf_v0.qf"])
+        subprocess.run(["docker", "exec", "q-agent", "python3", "main.py", "--env-id", "apl-nav-godiland-v1", "--drop_payload_agent",
+             "--qfunction", "./q_functions/qf_v1.qf"])
 
         print("DONE.")
         print("reseting.")
@@ -101,7 +103,7 @@ for combination in combinations:
         print("compelete.")
     print(uuids)
 
-    file_name = "{}-{}.p".format(x,y)
+    file_name = "{}-{}.p".format(combination[0],combination[1])
 
     with open(file_name, 'wb') as handle:
         pickle.dump(uuids, handle)
