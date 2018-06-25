@@ -24,6 +24,7 @@ uuids = []
 hiker_positions_x = [70, 90, 110, 130, 150, 170, 190]
 hiker_positions_y = [50, 70, 90, 110]
 
+
 last_hiker_x = 25
 last_hiker_y = 33
 #need to edit the xml file to those values: 25, 33
