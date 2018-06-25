@@ -1,16 +1,24 @@
-import actr
+#import actr
 import pickle
 import json
 import numpy as np
 
 
-file_names = ['070050','090050','110050','130050']
+file_names = ['070050','090050','110050','130050','150050']
 chunks = []
 
 
 for file_name in file_names:
     file_chunks = pickle.load(open(file_name + '.chunks', 'rb'))
-    chunks.append(file_chunks[0])
+    chunks.extend(file_chunks)
+    #chunks.append(file_chunks[0])
+
+print(len(chunks))
+
+#make a secondary storage
+#this storage has the values stored by feature (key) (dictionary)
+
+
 
 
 def access_by_key(key, list):
@@ -156,7 +164,7 @@ find = probe.index('distance_to_hiker')
 del probe[find+1]
 del probe[find]
 probe[1] = 'observation'
-probe[9] = 12
+probe[9] = 24
 print("probe2", probe)
 
 

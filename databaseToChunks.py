@@ -12,8 +12,8 @@ import mapquery
 
 con = psycopg2.connect(dbname='apm_missions',user='postgres',password='sterling',host='localhost',port=32768)
 cur = con.cursor()
-filenumber = '130050'
-latitude, longitude = 130, 50
+filenumber = '150050'
+latitude, longitude = 150, 50
 uuid_list = pickle.load(open(filenumber + '.p', "rb"))
 
 database = {}
@@ -61,8 +61,16 @@ def step_by_step():
         for step in database[mission_uuid]:
             chunk = []
             #print(step['observation'])
+            #print(mission_uuid)
             observation = step['observation'].strip('[]').split(' ')
-            observation = np.asarray(observation, dtype=np.float64, order='C')
+            #print('AFTERSPLIT',observation)
+            try:
+                observation = np.asarray(observation, dtype=np.float64, order='C')
+            except:
+                print("unknown error. deleting instance.")
+                del dict_of_chunks_as_lists[mission_uuid]
+                continue
+
             #print(observation)
             chunk.append('isa')
             chunk.append('drop_point')
@@ -164,7 +172,7 @@ def chunk_by_environment_and_drop(lat,lon):
 
 
 
-#print(chunk_by_environment_and_drop(110,50))
+print(chunk_by_environment_and_drop(latitude,longitude))
 
 
 
