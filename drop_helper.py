@@ -2,24 +2,49 @@
 import pickle
 import json
 import numpy as np
+import random
+from itertools import zip_longest
 
 
-file_names = ['070050','090050','110050','130050','150050']
-chunks = []
 
+
+
+file_names = ['allchunks_v0.chunks','allchunks_v1.chunks']
+chunk_lists = [] #the combined lists in the pickled files
+chunks = [] #the chunks will load here (want to make sure same # from each file)
+feature_values = {} #the content of chunks stored as feature:[val1,val2,...,valn]
 
 for file_name in file_names:
-    file_chunks = pickle.load(open(file_name + '.chunks', 'rb'))
-    chunks.extend(file_chunks)
-    #chunks.append(file_chunks[0])
+    chunk_lists.append(pickle.load(open(file_name, 'rb')))
 
-print(len(chunks))
+#Find the smallest list of chunks, add those chunks to chunk_list
+#Then add, randomly, the same number of instances from the other lists
 
-#make a secondary storage
-#this storage has the values stored by feature (key) (dictionary)
+min_length = min([len(x) for x in chunk_lists])
+for chunk_list in chunk_lists:
+    random.shuffle(chunk_lists)
+    chunks.extend(chunk_list[:min_length])
+
+#now go through those, and make the feature_values
+#need to go through each chunk by 2s (slot, value)
+#from https://stackoverflow.com/questions/2990121/how-do-i-loop-through-a-list-by-twos
+def grouper(n, iterable, fillvalue=None):
+    "grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx"
+    args = [iter(iterable)] * n
+    return zip_longest(fillvalue=fillvalue, *args)
+
+for chunk in chunks:
+    for slot, value in grouper(2, chunk):
+        if not slot in feature_values:
+            feature_values[slot] = []
+        feature_values[slot].append(value)
+
+#do the chunks need to change format?
+#they should be slot:[slot, value]
 
 
 
+print("")
 
 def access_by_key(key, list):
     '''Assumes key,vallue pairs and returns the value'''

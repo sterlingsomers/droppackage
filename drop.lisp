@@ -35,6 +35,7 @@
      ;;back to some parameters in the original sgp here
      :v t      ;;set to nil to turn off model output
      :blt t    ;;set to nil to turn off blending trace
+     :value->mag second ;;values as lists, the second item being the actual value
      :trace-detail high ;;lower this as needed, start at high for initial debugging.
      :style-warnings t  ;;set to nil to turn off production warnings, start at t for initial debugging.
      ) ;;end sgp

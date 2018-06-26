@@ -97,17 +97,17 @@ def step_by_step(database):
             chunk.append('isa')
             chunk.append('drop_point')
             chunk.append('pos_x_lon')
-            chunk.append(observation[0])
+            chunk.append(['pos_x_lon',observation[0]])
             chunk.append('pos_y_lat')
-            chunk.append(observation[1])
+            chunk.append(['pos_y_lat',observation[1]])
             chunk.append('altitude')
-            chunk.append(observation[2])
+            chunk.append(['altitude',observation[2]])
             current_altidude = int(observation[2])
             environment = step['environment']
             env = yaml.load(environment)
             #print(env['distance_to_target'])
             chunk.append('distance_to_hiker')
-            chunk.append(env['distance_to_target'])
+            chunk.append(['distance_to_hiker',env['distance_to_target']])
             #print(env)
             action = step['action']
             #print(action)
@@ -115,24 +115,24 @@ def step_by_step(database):
                 #chunk.append('altitude_change')
                 #chunk.append(head_to_values[2] - current_altidude)
                 chunk.append('drop_payload')
-                chunk.append(1)
+                chunk.append(['drop_payload',1])
 
             elif 'HEAD_TO' in action:
                 x = action[action.find('HEAD_TO,')+9:action.find(')')]
                 head_to_values = [int(n) for n in x.split(',')]
                 chunk.append('altitude_change')
-                chunk.append(head_to_values[2] - current_altidude)
+                chunk.append(['altitude_change',head_to_values[2] - current_altidude])
                 chunk.append('drop_payload')
-                chunk.append(0)
+                chunk.append(['drop_payload',0])
 
 
 
 
             else:
                 chunk.append('altitude_change')
-                chunk.append(0)
+                chunk.append(['altitude_change',0])
                 chunk.append('drop_payload')
-                chunk.append(0)
+                chunk.append(['drop_payload',0])
 
             #print(chunk)
             dict_of_chunks_as_lists[mission_uuid].append(chunk)
@@ -164,20 +164,21 @@ def chunk_by_environment_and_drop(lat,lon):
     #print(area_around_hiker)
 
     #pine_tree = 0
-    terrain_features = {'trees': 0, 'grass': 0, 'altitude_0': 0, 'altitude_1': 0, 'altitude_2': 0, 'altitude_3': 0}
+    terrain_features = {'trees': ['trees',0], 'grass': ['grass',0], 'altitude_0': ['altitude_0',0],
+                        'altitude_1': ['altitude_1',0], 'altitude_2': ['altitude_2',0], 'altitude_3': ['altitude_3',0]}
 
     for terrain in area_around_hiker:
         #print(terrain)
         if 'pine trees' in terrain or 'pine tree' in terrain:
-            terrain_features['trees'] += 1
-            terrain_features['altitude_1'] += 1
+            terrain_features['trees'][1] += 1
+            terrain_features['altitude_1'][1] += 1
         if terrain[4] == 1 and 'pine trees' not in terrain and 'pine tree' not in terrain:
-            terrain_features['altitude_1'] += 1
+            terrain_features['altitude_1'][1] += 1
         if terrain[4] == 0 and 'grass' in terrain:
-            terrain_features['grass'] += 1
-            terrain_features['altitude_0'] += 1
+            terrain_features['grass'][1] += 1
+            terrain_features['altitude_0'][1] += 1
         if terrain[4] == 0 and not 'grass' in terrain:
-            terrain_features['altitude_0'] += 1
+            terrain_features['altitude_0'][1] += 1
 
 
 
@@ -205,7 +206,7 @@ hiker_positions_x = [70, 90, 110, 130, 150, 170, 190]
 hiker_positions_y = [50, 70, 90, 110]
 
 combinations = list(itertools.product(hiker_positions_x,hiker_positions_y))
-combinations = [[100,350],[100,450],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70],[350,90],[430,110]]
+#combinations = [[100,350],[100,450],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70],[350,90],[430,110]]
 allchunks = []
 #file_name = "{}-{}.p".format(x,y)
 for combination in combinations:
@@ -213,7 +214,7 @@ for combination in combinations:
     allchunks.extend(chunk_by_environment_and_drop(combination[0],combination[1]))
 
 print(allchunks)
-with open('allchunks_v1.chunks', 'wb') as handle:
+with open('allchunks_v0.chunks', 'wb') as handle:
     pickle.dump(allchunks,handle)
 
 #with open(filenumber + '.chunks', 'wb') as handle:
