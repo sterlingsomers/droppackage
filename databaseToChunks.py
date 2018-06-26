@@ -5,6 +5,7 @@ import ast
 import json
 import yaml
 import mapquery
+import itertools
 
 #To run this, make sure you have the file number and set the file number and arguments to chunk_by_environment appropriately
 #70, 50 --> 070050 and
@@ -18,53 +19,58 @@ hiker_positions_y = [50, 70, 90, 110]
 #file_name = "{}-{}.p".format(x,y)
 #Todo convert this to combinations as well.
 
+combinations = list(itertools.product(hiker_positions_x,hiker_positions_y))
+
+combinations = [[100,350],[100,450],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70],[350,90],[430,110]]
+
+
 #filenumber = '150050'
 #latitude, longitude = 150, 50
 #uuid_list = pickle.load(open(filenumber + '.p', "rb"))
 
 database = {}
 #uuid_list = [uuid_list[0]]
-for y in hiker_positions_y:
-    for x in hiker_positions_x:
-        file_name = "{}-{}.p".format(x, y)
-        uuid_list = pickle.load(open(file_name, "rb"))
-        #print(uuid_list)
-        for uuids in uuid_list:
-            mission_uuid = uuids['mission']
-            cur.execute("SELECT mavsim_openlog.* FROM flights JOIN mavsim_openlog ON "
-                         "flights.simulation_session_uuid = mavsim_openlog.simulation_session_uuid WHERE"
-                         " flights.uuid='{}' ORDER BY mavsim_openlog.id;".format(mission_uuid))
+for combination in combinations:
 
-            line = cur.fetchone()
-            previous_line = ''
-            step = {}
-            while line is not None:
-                #print("LINE",line)
-                if 'EVENT' in line:
-                    if 'CRASH' in line[3]:
-                        print("craft crashed, excluding", line)
-                        break
-                while 'REWARD' not in line:
+    file_name = "{}-{}.p".format(combination[0], combination[1])
+    uuid_list = pickle.load(open(file_name, "rb"))
+    #print(uuid_list)
+    for uuids in uuid_list:
+        mission_uuid = uuids['mission']
+        cur.execute("SELECT mavsim_openlog.* FROM flights JOIN mavsim_openlog ON "
+                     "flights.simulation_session_uuid = mavsim_openlog.simulation_session_uuid WHERE"
+                     " flights.uuid='{}' ORDER BY mavsim_openlog.id;".format(mission_uuid))
 
-                    if "RAW_OBSERVATIONS" in line:
-                        step['observation'] = line[line.index('RAW_OBSERVATIONS') + 1]
-                    if "ENV_STEP_INFO" in  line:
-                        step['environment'] = line[line.index('ENV_STEP_INFO') + 1]
-                    if "AGENT_ACTIONS" in line:
-                        step['action'] = line[line.index('AGENT_ACTIONS') + 1]
-                    line = cur.fetchone()
-                if "REWARD" in line:
-                    step['reward'] = line[line.index('REWARD') + 1]
-                #previous_line = line
-                if not mission_uuid in database:
-                    database[mission_uuid] = []
-                database[mission_uuid].append(step.copy())
+        line = cur.fetchone()
+        previous_line = ''
+        step = {}
+        while line is not None:
+            #print("LINE",line)
+            if 'EVENT' in line:
+                if 'CRASH' in line[3]:
+                    print("craft crashed, excluding", line)
+                    break
+            while 'REWARD' not in line:
+
+                if "RAW_OBSERVATIONS" in line:
+                    step['observation'] = line[line.index('RAW_OBSERVATIONS') + 1]
+                if "ENV_STEP_INFO" in  line:
+                    step['environment'] = line[line.index('ENV_STEP_INFO') + 1]
+                if "AGENT_ACTIONS" in line:
+                    step['action'] = line[line.index('AGENT_ACTIONS') + 1]
                 line = cur.fetchone()
-                #break
+            if "REWARD" in line:
+                step['reward'] = line[line.index('REWARD') + 1]
+            #previous_line = line
+            if not mission_uuid in database:
+                database[mission_uuid] = []
+            database[mission_uuid].append(step.copy())
+            line = cur.fetchone()
+            #break
 
-        with open(file_name[:-2] + '.dict', 'wb') as handle:
-            pickle.dump(database, handle)
-        database = {}
+    with open(file_name[:-2] + '.dict', 'wb') as handle:
+        pickle.dump(database, handle)
+    database = {}
 
         #print("pickled the database to dictionary as {}.dict".format(file_name[-2] + '.dict'))
 
@@ -197,14 +203,17 @@ def chunk_by_environment_and_drop(lat,lon):
 
 hiker_positions_x = [70, 90, 110, 130, 150, 170, 190]
 hiker_positions_y = [50, 70, 90, 110]
+
+combinations = list(itertools.product(hiker_positions_x,hiker_positions_y))
+combinations = [[100,350],[100,450],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70],[350,90],[430,110]]
 allchunks = []
 #file_name = "{}-{}.p".format(x,y)
-for y in hiker_positions_y:
-    for x in hiker_positions_x:
-        allchunks.extend(chunk_by_environment_and_drop(x,y))
+for combination in combinations:
+
+    allchunks.extend(chunk_by_environment_and_drop(combination[0],combination[1]))
 
 print(allchunks)
-with open('allchunks_v0.chunks', 'wb') as handle:
+with open('allchunks_v1.chunks', 'wb') as handle:
     pickle.dump(allchunks,handle)
 
 #with open(filenumber + '.chunks', 'wb') as handle:
