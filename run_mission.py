@@ -38,7 +38,7 @@ combinations = [[100,350],[100,450],[100,150],[384,319],[270,50],[390,50],[410,5
 for combination in combinations:
     print("COM",combination)
     sed_command = "3s:.*:  <hiker_position>{}, {}</hiker_position>:".format(combination[0],combination[1])
-    subprocess.run(["docker", "exec", "q-agent", "sed", "-i", sed_command,
+    subprocess.run(["docker", "exec", "q-agent2", "sed", "-i", sed_command,
                     "/cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v1.xml"])
 
 
@@ -52,7 +52,7 @@ for combination in combinations:
         msgs = [['SIM', 'INSTANCE', 'instance_{}'.format(instance_uuid)],
                 ['SIM', 'SESSION', 'session_{}'.format(session_uuid)],
                 ['SIM', 'PILOT', 'ACTR_DATA'],
-                ['SIM', 'CLOSE', 'unclosed'],['SIM', 'NEW', 'godiland-base', mission_uuid], ['FLIGHT', 'ARM'], ['FLIGHT', 'MS_LOAD_PAYLOAD', 0, 'food'],
+                ['SIM', 'CLOSE', 'unclosed'],['SIM', 'NEW', 'godiland-base', mission_uuid], ['FLIGHT', 'ARM'], ['FLIGHT', 'MS_LOAD_PAYLOAD', 0, 'Food'],
                 ['FLIGHT', 'AUTO_TAKEOFF'],['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],
                 ['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],
                 ['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],
@@ -89,7 +89,7 @@ for combination in combinations:
 
 
 
-        subprocess.run(["docker", "exec", "q-agent", "python3", "main.py", "--env-id", "apl-nav-godiland-v1", "--drop_payload_agent",
+        subprocess.run(["docker", "exec", "q-agent2", "python3", "main.py", "--env-id", "apl-nav-godiland-v1", "--drop_payload_agent",
              "--qfunction", "./q_functions/qf_v1.qf"])
 
         print("DONE.")
