@@ -26,7 +26,6 @@ hiker_positions_x = [70, 90, 110, 130, 150, 170, 190]
 hiker_positions_y = [50, 70, 90, 110]
 
 combinations = list(itertools.product(hiker_positions_x,hiker_positions_y))
-#TODO use this combination format instead.
 #sed -i 3s:.*:"  <hiker_position>190, 110</hiker_position>": /cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v0.xml
 
 combinations = [[100,350],[100,450],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70],[350,90],[430,110]]

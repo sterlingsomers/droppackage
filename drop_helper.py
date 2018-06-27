@@ -10,6 +10,7 @@ from itertools import zip_longest
 
 EPS = 10e-4
 file_names = ['allchunks_v0.chunks','allchunks_v1.chunks']
+#file_names = ['allchunks_v1.chunks']
 chunk_lists = [] #the combined lists in the pickled files
 chunks = [] #the chunks will load here (want to make sure same # from each file)
 feature_values = {} #the content of chunks stored as feature:[val1,val2,...,valn]
@@ -225,7 +226,10 @@ for chunk in chunks:
     actr.add_dm(chunk)
 
 
-probe = ['isa', 'observation', 'altitude', 2.0, 'drop_payload', 1, 'trees', 25, 'grass', 0, 'altitude_0', 25, 'altitude_1', 25, 'altitude_2', 0, 'altitude_3', 0]
+probe = ['isa', 'observation', 'altitude', 2.0,
+         'drop_payload', 1, 'trees', 25, 'grass', 0, 'altitude_0', 0, 'altitude_1', 25, 'altitude_2', 0, 'altitude_3', 0]
+#probe = ['isa', 'observation', 'altitude', 2.0,
+#         'drop_payload', 1, 'trees', 2, 'grass', 23, 'altitude_0', 23, 'altitude_1', 2, 'altitude_2', 0, 'altitude_3', 0]
 #probe = ['isa', 'observation', 'value1', 0.5, 'something', 0]
 
 probe = [x[1] if isinstance(x,list) else x for x in probe]
@@ -250,16 +254,53 @@ t = access_by_key('TEMPERATURE',d[0][1])
 #
 ##factors = ['trees','grass','altitude','altitude_0','altitude_1','altitude_2','altitude_3']
 factors = ['trees','altitude_1','altitude_0','altitude_2','altitude_3']
-result_factors = ['pos_x_lon','pos_y_lat','distance_to_hiker']
+result_factors = ['pos_x_lon','pos_y_lat']#,'distance_to_hiker']
 #factors = ['needsFood', 'needsWater']
 ##result_factors = ['pos_x_lon','pos_y_lat','distance_to_hiker']
 #result_factors = ['food','water']
+
+
+salience_values = {}
 results = compute_S(d, factors, result_factors)#,'f3'])
 for sums,result_factor in zip(results,result_factors):
+    if result_factor not in salience_values:
+        salience_values[result_factor] = {}
     print("For", result_factor)
     for s,factor in zip(sums,factors):
-        print(factor, round(MP/t * sum(s),4))
+        #if not factor in salience_values[result_factor][factor]:
 
+        salience_values[result_factor][factor] = (MP/t * sum(s))
+
+        print(factor, MP/t * sum(s))
+
+print("salience_values", salience_values)
+normalized_salience_values = {}
+for key in salience_values:
+    values = []
+    for sub_key in salience_values[key]:
+        values.append(salience_values[key][sub_key])
+    max_values = max(values)
+    min_values = min(values)
+    for sub_key in salience_values[key]:
+        if key not in normalized_salience_values:
+            normalized_salience_values[key] = {}
+        val1 = salience_values[key][sub_key]
+        #val_transpose = (((val1 - min_values) * (0 + 1)) / (max_values - min_values)) + 0
+        #another way
+        values = [abs(x) for x in values]
+        val_transpose = abs(val1/sum(values))
+        #another way
+        #val_transpose = abs(val1/max_values)
+
+        normalized_salience_values[key][sub_key] = val_transpose
+
+for key in normalized_salience_values:
+    print("For {} value, saliences are:".format(key))
+    for sub_key in normalized_salience_values[key]:
+        print("{}: {}".format(sub_key,round(normalized_salience_values[key][sub_key],5)))
+
+
+#val1_t = (((val1 - min_val) * (0 + 1)) / (max_val - min_val)) + 0
 #print("actual value is", actr.chunk_slot_value('OBSERVATION0','ACTUAL'))
 print("probe is", probe)
 print("done")
