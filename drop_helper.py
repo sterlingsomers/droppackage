@@ -1,4 +1,4 @@
-#import actr
+import actr
 import pickle
 import json
 import numpy as np
@@ -8,7 +8,7 @@ from itertools import zip_longest
 
 
 
-
+EPS = 10e-4
 file_names = ['allchunks_v0.chunks','allchunks_v1.chunks']
 chunk_lists = [] #the combined lists in the pickled files
 chunks = [] #the chunks will load here (want to make sure same # from each file)
@@ -33,8 +33,14 @@ def grouper(n, iterable, fillvalue=None):
     args = [iter(iterable)] * n
     return zip_longest(fillvalue=fillvalue, *args)
 
+#chunks = [['isa','decision','value1',['value1',1.5],'output',['output',1],'value2',['value2',1]],
+#         ['isa','decision','value1',['value1',0],'output',['output',0],'value2',['value2',0]],
+#          ['isa', 'decision', 'value1', ['value1', 1], 'output', ['output', 1], 'value2', ['value2', 1]]]
+#chunks = chunks[0:5]
 for chunk in chunks:
+    print(chunk)
     for slot, value in grouper(2, chunk):
+        print('slot',slot,'value',value,'features',feature_values)
         if not slot in feature_values:
             feature_values[slot] = []
         feature_values[slot].append(value)
@@ -53,12 +59,14 @@ def access_by_key(key, list):
 
     return list[list.index(key)+1]
 
-def compute_S(blend_trace, keys_list):
+def compute_S(blend_trace, keys_list,result_factors):
     '''For blend_trace @ time'''
     #probablities
     probs = [x[3] for x in access_by_key('MAGNITUDES',access_by_key('SLOT-DETAILS',blend_trace[0][1])[0][1])]
     #feature values in probe
     FKs = [access_by_key(key.upper(),access_by_key('RESULT-CHUNK',blend_trace[0][1])) for key in keys_list]
+    #FKs is fucked.
+
     chunk_names = [x[0] for x in access_by_key('CHUNKS', blend_trace[0][1])]
 
     #Fs is all the F values (may or may not be needed for tss)
@@ -78,12 +86,29 @@ def compute_S(blend_trace, keys_list):
     #min_val = min(map(min, zip(*feature_sets)))
     #it's a bit more complex in drone case
     #I know its' 25 and 0 though
-    max_val = 25
-    min_val = 0
+    #max_val = 25
+    #min_val = 0
+
+    #print(FKs, keys_list)
+
+    #n = max_val - min_val
+    #n = max_val
+    #instead, build an n-list
+    #June 26
+    n = []
+    for x in keys_list:
+        #print("xxxxx", x)
+        feature_list = feature_values[x]
+        y = [p[1] for p in feature_list]
+        n.append(max(y)+EPS)
 
 
-    n = max_val - min_val
-    n = max_val
+
+    #    print('ffff',feature_values[x][1])
+    #n = [max(feature_values[x][1]) for x in keys_list]
+
+
+
     #n = 1
     #this case the derivative is:
     #           Fk > vjk -> -1/n
@@ -98,20 +123,26 @@ def compute_S(blend_trace, keys_list):
         if not i in tss:
             tss[i] = []
         for j in range(len(probs)):
-            if FKs[i] > vjks[j][i]:
-                dSim = -1/n
-            elif FKs[i] == vjks[j][i]:
+            #print("####",FKs[i], vjks[j][i])
+            if FKs[i] > vjks[j][i][1]:
+                #print("NNNNNN",n,n[i])
+                dSim = -1/n[i]
+            elif FKs[i] == vjks[j][i][1]:
                 dSim = 0
             else:
-                dSim = 1/n
+                dSim = 1/n[i]
             tss[i].append(probs[j] * dSim)
         ts2.append(sum(tss[i]))
+        print(ts2)
 
     #vios
     viosList = []
-    viosList.append([actr.chunk_slot_value(x,'pos_x_lon') for x in chunk_names])
-    viosList.append([actr.chunk_slot_value(x,'pos_y_lat') for x in chunk_names])
-    viosList.append([actr.chunk_slot_value(x,'distance_to_hiker') for x in chunk_names])
+    for xx in result_factors:
+        viosList.append([actr.chunk_slot_value(x,xx) for x in chunk_names])
+
+    #viosList.append([actr.chunk_slot_value(x,'pos_x_lon') for x in chunk_names])
+    #viosList.append([actr.chunk_slot_value(x,'pos_y_lat') for x in chunk_names])
+    #viosList.append([actr.chunk_slot_value(x,'distance_to_hiker') for x in chunk_names])
 
 
     #viosList.append([actr.chunk_slot_value(x, 'water') for x in chunk_names])
@@ -119,18 +150,23 @@ def compute_S(blend_trace, keys_list):
     #compute (7)
     rturn = []
     for vios in viosList:
+        print('vios',vios)
         results = []
         for i in range(len(FKs)):
+            print("FK",FKs[i])
             tmp = 0
             sub = []
             for j in range(len(probs)):
-                if FKs[i] > vjks[j][i]:
-                    dSim = -1/n
-                elif FKs[i] == vjks[j][i]:
+                #print('vjksJ',vjks[j])
+                print('vjksJI',vjks[j][i])
+                if FKs[i] > vjks[j][i][1]:
+                    dSim = -1/n[i]
+                elif FKs[i] == vjks[j][i][1]:
                     dSim = 0
                 else:
-                    dSim = 1/n
-                tmp = probs[j] * (dSim - ts2[i]) * vios[j]#sum(tss[i])) * vios[j]
+                    dSim = 1/n[i]
+                tmp = probs[j] * (dSim - ts2[i]) * vios[j][1]#sum(tss[i])) * vios[j]
+                print('tmp', tmp, 'probs', probs[j], 'dSim', dSim, 'ts2', ts2[i], 'vios',vios[j][1])
                 sub.append(tmp)
             results.append(sub)
 
@@ -142,14 +178,25 @@ def compute_S(blend_trace, keys_list):
 
 def similarity(val1, val2):
     '''Linear tranformation, abslute difference'''
+    print("similarity", val1, val2)
+    slot = val2[0].lower()
+    val2 = val2[1]
+    print('val1',val1,'val2',val2)
     if val1 == None:
         return None
+    if val1 == 0:
+        print('val1 is zero')
+    if val2 == 0:
+        print('val2 is zero')
     #max_val = max(map(max, zip(*feature_sets)))
     #min_val = min(map(min, zip(*feature_sets)))
     #again, max and min are more complicated
-    max_val = 25
-    min_val = 0
-    print("max,min,val1,val2",max_val,min_val,val1,val2)
+    values = [x[1] for x in feature_values[slot]]
+    min_val = min(values)
+    max_val = max(values)
+    max_val += EPS
+    print('min', min_val, 'max', max_val)
+    #print("max,min,val1,val2",max_val,min_val,val1,val2)
     val1_t = (((val1 - min_val) * (0 + 1)) / (max_val - min_val)) + 0
     val2_t = (((val2 - min_val) * (0 + 1)) / (max_val - min_val)) + 0
     #print("val1_t,val2_t", val1_t, val2_t)
@@ -177,26 +224,15 @@ actr.record_history("blending-trace")
 for chunk in chunks:
     actr.add_dm(chunk)
 
-probe = list(chunks[3])
-print("probe", probe)
-find = probe.index('pos_x_lon')
-del probe[find+1]
-del probe[find]
-find = probe.index('pos_y_lat')
-del probe[find+1]
-del probe[find]
-find = probe.index('distance_to_hiker')
-del probe[find+1]
-del probe[find]
-probe[1] = 'observation'
-probe[9] = 24
-print("probe2", probe)
 
+probe = ['isa', 'observation', 'altitude', 2.0, 'drop_payload', 1, 'trees', 25, 'grass', 0, 'altitude_0', 25, 'altitude_1', 25, 'altitude_2', 0, 'altitude_3', 0]
+#probe = ['isa', 'observation', 'value1', 0.5, 'something', 0]
 
-
+probe = [x[1] if isinstance(x,list) else x for x in probe]
+#chunk = "({} {} {} {})".format('isa', 'observation', 'true', 'false')
 chunk = actr.define_chunks(probe)
 actr.schedule_simple_event_now("set-buffer-chunk", ['imaginal', chunk[0]])
-
+print("")
 actr.run(10)
 
 print("Using chunk", probe)
@@ -212,15 +248,17 @@ t = access_by_key('TEMPERATURE',d[0][1])
 # #the values
 # vs = [actr.chunk_slot_value(x,'value') for x in chunk_names]
 #
-factors = ['trees','grass','altitude','altitude_0','altitude_1']
-#factors = ['needsFood', 'needsWater']
+##factors = ['trees','grass','altitude','altitude_0','altitude_1','altitude_2','altitude_3']
+factors = ['trees','altitude_1','altitude_0','altitude_2','altitude_3']
 result_factors = ['pos_x_lon','pos_y_lat','distance_to_hiker']
+#factors = ['needsFood', 'needsWater']
+##result_factors = ['pos_x_lon','pos_y_lat','distance_to_hiker']
 #result_factors = ['food','water']
-results = compute_S(d, factors)#,'f3'])
+results = compute_S(d, factors, result_factors)#,'f3'])
 for sums,result_factor in zip(results,result_factors):
     print("For", result_factor)
     for s,factor in zip(sums,factors):
-        print(factor, MP/t * sum(s))
+        print(factor, round(MP/t * sum(s),4))
 
 #print("actual value is", actr.chunk_slot_value('OBSERVATION0','ACTUAL'))
 print("probe is", probe)

@@ -47,7 +47,7 @@
             trees grass altitude_0 altitude_1 altitude_2
             altitude_3)
 (chunk-type observation altitude altitude_change drop_payload
-            trees grass altitude_0 altitude_1 altitude_2)
+            trees grass altitude_0 altitude_1 altitude_2 altitude_3)
 
 (add-dm
  (goal isa initialize state select-army)
@@ -91,6 +91,7 @@
        pos_x_lon =x
        pos_y_lat =y
        distance_to_hiker =distance
+       ;;reward =reward
      ?blending>
        state free
      ==>

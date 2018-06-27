@@ -31,6 +31,7 @@ combinations = list(itertools.product(hiker_positions_x,hiker_positions_y))
 
 combinations = [[100,350],[100,450],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70],[350,90],[430,110]]
 
+
 #last_hiker_x = 25
 #last_hiker_y = 33
 #need to edit the xml file to those values: 25, 33
