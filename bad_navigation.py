@@ -27,6 +27,7 @@ def ListToFormattedString(alist):
 def fly_path(coordinates=[]):
     if coordinates:
         for coordinate in coordinates:
+            print("FLYING TO", coordinate[0],coordinate[1])
             msg = ['FLIGHT', 'FLY_TO', coordinate[1], coordinate[0], 3]
             msg = ListToFormattedString(msg)
             sent = send_sock.sendto(msg.encode('utf-8'),mavsim_server)

@@ -21,7 +21,7 @@ def ListToFormattedString(alist):
     s = '(' + ','.join(formatted_list) + ')'
     return s.format(*alist)
 
-
+#
 version_number = 1
 uuids = []
 hiker_positions_x = [70, 90, 110, 130, 150, 170, 190]
@@ -31,7 +31,7 @@ combinations = list(itertools.product(hiker_positions_x,hiker_positions_y))
 #sed -i 3s:.*:"  <hiker_position>190, 110</hiker_position>": /cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v0.xml
 
 #v1
-combinations = [[70, 170],[100,350],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70],[350,90],[430,110]]
+combinations = [[100,350],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70],[350,90],[430,110]]
 #v2
 
 
@@ -46,7 +46,7 @@ for combination in combinations:
                     "/cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v{}.xml".format(version_number)])
 
     #look for Simon's navigation solution
-    grep_results = subprocess.getoutput("docker exec q-agent2 grep -n '{}, {}' /cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v{}.xml".format(combination[0],combination[1],version_number))
+    grep_results = subprocess.getoutput("docker exec q-agent2 grep -n -m2 '{}, {}' /cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v{}.xml | tail -n1".format(combination[0],combination[1],version_number))
     if grep_results:
         line_number = int(grep_results[0:grep_results.index(':')])
     line = ''
@@ -59,7 +59,7 @@ for combination in combinations:
             y = int(line[line.index(",") + 1:line.index("</step>")])
             path_coordinates.append([x,y])
 
-
+    print(path_coordinates)
     for i in range(1):
 
         mission_uuid = uuid.uuid4().hex
