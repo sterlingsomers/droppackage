@@ -10,6 +10,8 @@ import subprocess
 import pickle
 import itertools
 
+import bad_navigation
+
 
 def ListToFormattedString(alist):
     # Each item is right-adjusted, width=3
@@ -20,7 +22,7 @@ def ListToFormattedString(alist):
     return s.format(*alist)
 
 
-
+version_number = 1
 uuids = []
 hiker_positions_x = [70, 90, 110, 130, 150, 170, 190]
 hiker_positions_y = [50, 70, 90, 110]
@@ -28,7 +30,9 @@ hiker_positions_y = [50, 70, 90, 110]
 combinations = list(itertools.product(hiker_positions_x,hiker_positions_y))
 #sed -i 3s:.*:"  <hiker_position>190, 110</hiker_position>": /cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v0.xml
 
-combinations = [[100,350],[100,450],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70],[350,90],[430,110]]
+#v1
+combinations = [[70, 170],[100,350],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70],[350,90],[430,110]]
+#v2
 
 
 #last_hiker_x = 25
@@ -39,7 +43,21 @@ for combination in combinations:
     print("COM",combination)
     sed_command = "3s:.*:  <hiker_position>{}, {}</hiker_position>:".format(combination[0],combination[1])
     subprocess.run(["docker", "exec", "q-agent2", "sed", "-i", sed_command,
-                    "/cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v1.xml"])
+                    "/cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v{}.xml".format(version_number)])
+
+    #look for Simon's navigation solution
+    grep_results = subprocess.getoutput("docker exec q-agent2 grep -n '{}, {}' /cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v{}.xml".format(combination[0],combination[1],version_number))
+    if grep_results:
+        line_number = int(grep_results[0:grep_results.index(':')])
+    line = ''
+    path_coordinates = []
+    while not '</path>' in line:
+        line_number += 1
+        line = subprocess.getoutput("docker exec q-agent2 sed '{}!d' /cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v{}.xml".format(line_number,version_number))
+        if 'step' in line:
+            x = int(line[line.index("<step>")+6:line.index(",")])
+            y = int(line[line.index(",") + 1:line.index("</step>")])
+            path_coordinates.append([x,y])
 
 
     for i in range(1):
@@ -73,6 +91,11 @@ for combination in combinations:
 
         print("take-off procedure complete.")
 
+        #if Simon's xml file has coordinates, fly to them
+        #path_coordinates = [[30,483]]
+        bad_navigation.fly_path(coordinates=path_coordinates)
+
+
 
         #First edit the xml file
         #sed_command = "0,/{}/s/{}/{}/".format(last_hiker_x,last_hiker_x,x)
@@ -89,8 +112,8 @@ for combination in combinations:
 
 
 
-        subprocess.run(["docker", "exec", "q-agent2", "python3", "main.py", "--env-id", "apl-nav-godiland-v1", "--drop_payload_agent",
-             "--qfunction", "./q_functions/qf_v1.qf"])
+        subprocess.run(["docker", "exec", "q-agent2", "python3", "main.py", "--env-id", "apl-nav-godiland-v{}".format(version_number), "--drop_payload_agent",
+             "--qfunction", "./q_functions/qf_v{}.qf".format(version_number)])
 
         print("DONE.")
         print("reseting.")
