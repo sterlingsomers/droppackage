@@ -52,7 +52,7 @@ for combination in combinations:
                     "/cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v{}.xml".format(version_number)])
 
     #look for Simon's navigation solution
-    grep_results = subprocess.getoutput("docker exec q-agent2 grep -n -m2 '{}, {}' /cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v{}.xml | tail -n1".format(combination[0],combination[1],version_number))
+    grep_results = subprocess.getoutput("docker exec q-agent2 grep -n -m2 '>{}, {}<' /cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v{}.xml | tail -n1".format(combination[0],combination[1],version_number))
     if grep_results:
         line_number = int(grep_results[0:grep_results.index(':')])
     line = ''
@@ -75,7 +75,7 @@ for combination in combinations:
         #print("uuid", auuid)
         msgs = [['SIM', 'INSTANCE', 'instance_{}'.format(instance_uuid)],
                 ['SIM', 'SESSION', 'session_{}'.format(session_uuid)],
-                ['SIM', 'PILOT', 'ACTR_DATA_v{}'.format(version_number)],
+                ['SIM', 'PILOT', 'ACTR_DATA_learner2_v{}'.format(version_number)],
                 ['SIM', 'CLOSE', 'unclosed'],['SIM', 'NEW', 'godiland-base', mission_uuid], ['FLIGHT', 'ARM'], ['FLIGHT', 'MS_LOAD_PAYLOAD', 0, 'Food'],
                 ['FLIGHT', 'AUTO_TAKEOFF'],['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],
                 ['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],
