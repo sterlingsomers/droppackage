@@ -119,7 +119,7 @@ for combination in combinations:
 
 
         subprocess.run(["docker", "exec", "q-agent2", "python3", "main.py", "--env-id", "apl-nav-godiland-v{}".format(version_number), "--drop_payload_agent",
-             "--qfunction", "./q_functions/qf_v{}.qf".format(version_number)])
+             "--qfunction", "./q_functions/local_v{}.qf".format(version_number)])
 
         print("DONE.")
         print("reseting.")
