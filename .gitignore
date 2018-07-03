@@ -9,6 +9,7 @@ __pycache__/
 *.p
 *.dict
 *.chunks
+data/
 
 # Distribution / packaging
 .Python
@@ -106,3 +107,4 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+/data/
