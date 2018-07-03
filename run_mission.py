@@ -25,12 +25,12 @@ uuids = []
 hiker_positions_x = [70, 90, 110, 130, 150, 170, 190]
 hiker_positions_y = [50, 70, 90, 110]
 
-combinations = list(itertools.product(hiker_positions_x,hiker_positions_y))
+#combinations = list(itertools.product(hiker_positions_x,hiker_positions_y))
 #TODO use this combination format instead.
 #sed -i 3s:.*:"  <hiker_position>190, 110</hiker_position>": /cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v0.xml
 
-combinations = [[100,350],[100,450],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70],[350,90],[430,110]]
-
+#combinations = [[100,350],[100,450],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70],[350,90],[430,110]]
+combinations = [[350,90]]#[[230,70]]#[[410,50]] # 100,350
 #last_hiker_x = 25
 #last_hiker_y = 33
 #need to edit the xml file to those values: 25, 33
@@ -52,7 +52,7 @@ for combination in combinations:
         msgs = [['SIM', 'INSTANCE', 'instance_{}'.format(instance_uuid)],
                 ['SIM', 'SESSION', 'session_{}'.format(session_uuid)],
                 ['SIM', 'PILOT', 'ACTR_DATA'],
-                ['SIM', 'CLOSE', 'unclosed'],['SIM', 'NEW', 'godiland-base', mission_uuid], ['FLIGHT', 'ARM'], ['FLIGHT', 'MS_LOAD_PAYLOAD', 0, 'food'],
+                ['SIM', 'CLOSE', 'unclosed'],['SIM', 'NEW', 'godiland-base', mission_uuid], ['FLIGHT', 'ARM'], ['FLIGHT', 'MS_LOAD_PAYLOAD', 0, 'Food'],
                 ['FLIGHT', 'AUTO_TAKEOFF'],['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],
                 ['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],
                 ['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],
@@ -90,7 +90,7 @@ for combination in combinations:
 
 
         subprocess.run(["docker", "exec", "q-agent", "python3", "main.py", "--env-id", "apl-nav-godiland-v1", "--drop_payload_agent",
-             "--qfunction", "./q_functions/qf_v1.qf"])
+             "--qfunction", "./q_functions/local_v1.qf"])
 
         print("DONE.")
         print("reseting.")

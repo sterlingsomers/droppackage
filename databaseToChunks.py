@@ -11,7 +11,7 @@ import itertools
 #70, 50 --> 070050 and
 #also need a mission started in mavsim -> just go to exigisi, press new, and accept default is fine.
 
-con = psycopg2.connect(dbname='apm_missions',user='postgres',password='sterling',host='localhost',port=32768)
+con = psycopg2.connect(dbname='apm_missions',user='postgres',password='1880',host='localhost',port=32768)
 cur = con.cursor()
 
 hiker_positions_x = [70, 90, 110, 130, 150, 170, 190]
