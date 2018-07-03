@@ -74,6 +74,7 @@ for combination in combinations:
         instance_uuid = uuid.uuid4().hex
         uuids.append({'mission':mission_uuid,'session':session_uuid,'instance':instance_uuid})
         #print("uuid", auuid)
+        #ignore
         msgs = [['SIM', 'INSTANCE', 'instance_{}'.format(instance_uuid)],
                 ['SIM', 'SESSION', 'session_{}'.format(session_uuid)],
                 ['SIM', 'PILOT', 'ACTR_DATA_1_V3_v{}'.format(version_number)],
