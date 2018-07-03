@@ -22,7 +22,7 @@ def ListToFormattedString(alist):
     return s.format(*alist)
 
 #
-version_number = 5
+version_number = 2
 uuids = []
 hiker_positions_x = [70, 90, 110, 130, 150, 170, 190]
 hiker_positions_y = [50, 70, 90, 110]
@@ -34,12 +34,13 @@ combinations = list(itertools.product(hiker_positions_x,hiker_positions_y))
 # combinations = [[100,350],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70],[350,90],[430,110]]
 #v2
 combinations = [[100,350],[100,450],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70],
-                [350,90],[410,90],[430,110],[70,50],[90,50],[110,50],[130,50],[150,50],[170,50],[190,50],
+                [350,90],[410,90],[430,110],
+                [70,50],[90,50],[110,50],[130,50],[150,50],[170,50],[190,50],
                 [70,70],[90,70],[110,70],[130,70],[150,70],[170,70],[190,70],[70,90],[90,90],[110,90],
                 [130,90],[150,90],[170,90],[70,110],[90,110],[110,110],[130,110],[150,110],[170,110],
-                [50,150],[50,250],[100,250],[100,50],
-                [278,267],[278,273],[284,277],[268,277],[261,269],[251,269],[243,271],[247,279],[287,263],
-                [288,269],[327,264],[389,381],[417,304],[452,312],[380,268],[411,271],[418,277],[431,282]]
+                [50,150],[50,250],[100,250],[100,50]]
+                #[278,267],[278,273],[284,277],[268,277],[261,269],[251,269],[243,271],[247,279],[287,263],
+                #[288,269],[327,264],[389,381],[417,304],[452,312],[380,268],[411,271],[418,277],[431,282]]
 
 #last_hiker_x = 25
 #last_hiker_y = 33
@@ -48,18 +49,18 @@ combinations = [[100,350],[100,450],[100,150],[384,319],[270,50],[390,50],[410,5
 for combination in combinations:
     print("COM",combination)
     sed_command = "3s:.*:  <hiker_position>{}, {}</hiker_position>:".format(combination[0],combination[1])
-    subprocess.run(["docker", "exec", "q-agent2", "sed", "-i", sed_command,
+    subprocess.run(["docker", "exec", "q-agent_v3", "sed", "-i", sed_command,
                     "/cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v{}.xml".format(version_number)])
 
     #look for Simon's navigation solution
-    grep_results = subprocess.getoutput("docker exec q-agent2 grep -n -m2 '>{}, {}<' /cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v{}.xml | tail -n1".format(combination[0],combination[1],version_number))
+    grep_results = subprocess.getoutput("docker exec q-agent_v3 grep -n -m2 '>{}, {}<' /cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v{}.xml | tail -n1".format(combination[0],combination[1],version_number))
     if grep_results:
         line_number = int(grep_results[0:grep_results.index(':')])
     line = ''
     path_coordinates = []
     while not '</path>' in line:
         line_number += 1
-        line = subprocess.getoutput("docker exec q-agent2 sed '{}!d' /cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v{}.xml".format(line_number,version_number))
+        line = subprocess.getoutput("docker exec q-agent_v3 sed '{}!d' /cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v{}.xml".format(line_number,version_number))
         if 'step' in line:
             x = int(line[line.index("<step>")+6:line.index(",")])
             y = int(line[line.index(",") + 1:line.index("</step>")])
@@ -75,7 +76,7 @@ for combination in combinations:
         #print("uuid", auuid)
         msgs = [['SIM', 'INSTANCE', 'instance_{}'.format(instance_uuid)],
                 ['SIM', 'SESSION', 'session_{}'.format(session_uuid)],
-                ['SIM', 'PILOT', 'ACTR_DATA_learner2_v{}'.format(version_number)],
+                ['SIM', 'PILOT', 'ACTR_DATA_1_V3_v{}'.format(version_number)],
                 ['SIM', 'CLOSE', 'unclosed'],['SIM', 'NEW', 'godiland-base', mission_uuid], ['FLIGHT', 'ARM'], ['FLIGHT', 'MS_LOAD_PAYLOAD', 0, 'Food'],
                 ['FLIGHT', 'AUTO_TAKEOFF'],['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],
                 ['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],
@@ -118,7 +119,7 @@ for combination in combinations:
 
 
 
-        subprocess.run(["docker", "exec", "q-agent2", "python3", "main.py", "--env-id", "apl-nav-godiland-v{}".format(version_number), "--drop_payload_agent",
+        subprocess.run(["docker", "exec", "q-agent_v3", "python3", "main.py", "--env-id", "apl-nav-godiland-v{}".format(version_number), "--drop_payload_agent",
              "--qfunction", "./q_functions/local_v{}.qf".format(version_number)])
 
         print("DONE.")
