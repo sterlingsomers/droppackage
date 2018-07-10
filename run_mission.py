@@ -77,7 +77,7 @@ for combination in combinations:
         #ignore
         msgs = [['SIM', 'INSTANCE', 'instance_{}'.format(instance_uuid)],
                 ['SIM', 'SESSION', 'session_{}'.format(session_uuid)],
-                ['SIM', 'PILOT', 'ACTR_DATA_2_V3_v{}'.format(version_number)],
+                ['SIM', 'PILOT', 'ACTR_TEST_V3_v{}'.format(version_number)],
                 ['SIM', 'CLOSE', 'unclosed'],['SIM', 'NEW', 'godiland-base', mission_uuid], ['FLIGHT', 'ARM'], ['FLIGHT', 'MS_LOAD_PAYLOAD', 0, 'Food'],
                 ['FLIGHT', 'AUTO_TAKEOFF'],['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],
                 ['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],

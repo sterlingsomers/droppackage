@@ -9,7 +9,11 @@ __pycache__/
 *.p
 *.dict
 *.chunks
+*.mp
+database_backup/
 data/
+maps/
+features/
 
 # Distribution / packaging
 .Python
