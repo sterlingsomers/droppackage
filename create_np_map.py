@@ -29,8 +29,8 @@ def get_feature_value_maps(x,y,map):
     feature_value_map = {}
     value_feature_map = {}
     #first check for existing feature maps
-    feature_to_value = Path('features/features_to_values.p')
-    value_to_feature = Path('features/values_to_features.p')
+    feature_to_value = Path('features/features_to_values.dict')
+    value_to_feature = Path('features/values_to_features.dict')
 
     if feature_to_value.is_file():
         feature_value_map = pickle.load(open(feature_to_value,'rb'))
@@ -112,9 +112,14 @@ def map_to_volume_dict(x=0,y=0,width=5,height=5):
         print("saving map.")
         with open('maps/' + filename, 'wb') as handle:
             pickle.dump(map, handle)
-    convert_map_to_volume_dict(x,y,map)
+    #convert_map_to_volume_dict(x,y,map)
+    return convert_map_to_volume_dict(x,y,map)
+
+ #   return return_dict
 
 
-    return return_dict
 
-map_to_volume_dict(70,50,20,20)
+#sample code
+a = map_to_volume_dict(300,200,20,20)
+f,v = get_feature_value_maps(300,200,a)
+print('complete.')
