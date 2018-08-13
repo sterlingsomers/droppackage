@@ -22,7 +22,8 @@ def ListToFormattedString(alist):
     return s.format(*alist)
 
 #
-version_number = 1
+pilot_name = "TEST_Data_trained_areas_trained_headings"
+version_number = 2
 uuids = []
 hiker_positions_x = [70, 90, 110, 130, 150, 170, 190]
 hiker_positions_y = [50, 70, 90, 110]
@@ -31,12 +32,17 @@ combinations = list(itertools.product(hiker_positions_x,hiker_positions_y))
 #sed -i 3s:.*:"  <hiker_position>190, 110</hiker_position>": /cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v0.xml
 
 #v1
-# combinations = [[100,350],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70],[350,90],[430,110]]
+#combinations = [[100,350],[100,450],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70]]#,[350,90],[430,110]]
 #v2
-combinations = [[100,350],[100,450],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70], #v1
-                [350,90],[410,90],[430,110]] #v1
-                # [70,50],[90,50],[110,50],[130,50],[150,50],[170,50],[190,50], #v2
-                # [70,70],[90,70],[110,70],[130,70],[150,70],[170,70],[190,70],[70,90],[90,90],[110,90], #v2
+# combinations = [[100,350],[100,450],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70],
+#                 [70,50],[90,50],[110,50],[130,50],[150,50],[170,50],[190,50],[70,70],[90,70],[110,70]]#, #v1
+                #[350,90],[410,90],[430,110]] #v1
+#v2
+combinations = [[70,50],[90,50],[110,50],[130,50],[150,50],[170,50],[190,50],[70,70],[90,70],[110,70]]
+
+#v5
+#combinations = [[278,267],[278,273],[284,277],[268,277],[261,269],[251,269],[243,271],[247,279],[287,263],[288,269]]
+#,[130,70],[150,70],[170,70],[190,70],[70,90],[90,90],[110,90], #v2
                 # [130,90],[150,90],[170,90],[70,110],[90,110],[110,110],[130,110],[150,110],[170,110], #v2
                 # [50,150],[50,250],[100,250],[100,50],  #v2
                 # [278,267],[278,273],[284,277],[268,277],[261,269],[251,269],[243,271],[247,279],[287,263], #v5
@@ -49,25 +55,25 @@ combinations = [[100,350],[100,450],[100,150],[384,319],[270,50],[390,50],[410,5
 for combination in combinations:
     print("COM",combination)
     sed_command = "3s:.*:  <hiker_position>{}, {}</hiker_position>:".format(combination[0],combination[1])
-    subprocess.run(["docker", "exec", "q-agent_v3", "sed", "-i", sed_command,
+    subprocess.run(["docker", "exec", "q-learner-container33", "sed", "-i", sed_command,
                     "/cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v{}.xml".format(version_number)])
 
     #look for Simon's navigation solution
-    grep_results = subprocess.getoutput("docker exec q-agent_v3 grep -n -m2 '>{}, {}<' /cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v{}.xml | tail -n1".format(combination[0],combination[1],version_number))
+    grep_results = subprocess.getoutput("docker exec q-learner-container33 grep -n -m2 '>{}, {}<' /cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v{}.xml | tail -n1".format(combination[0],combination[1],version_number))
     if grep_results:
         line_number = int(grep_results[0:grep_results.index(':')])
     line = ''
     path_coordinates = []
     while not '</path>' in line:
         line_number += 1
-        line = subprocess.getoutput("docker exec q-agent_v3 sed '{}!d' /cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v{}.xml".format(line_number,version_number))
+        line = subprocess.getoutput("docker exec q-learner-container33 sed '{}!d' /cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v{}.xml".format(line_number,version_number))
         if 'step' in line:
             x = int(line[line.index("<step>")+6:line.index(",")])
             y = int(line[line.index(",") + 1:line.index("</step>")])
             path_coordinates.append([x,y])
 
     print(path_coordinates)
-    for i in range(1):
+    for i in range(10):
 
         mission_uuid = uuid.uuid4().hex
         session_uuid = uuid.uuid4().hex
@@ -77,8 +83,10 @@ for combination in combinations:
         #ignore
         msgs = [['SIM', 'INSTANCE', 'instance_{}'.format(instance_uuid)],
                 ['SIM', 'SESSION', 'session_{}'.format(session_uuid)],
-                ['SIM', 'PILOT', 'ACTR_TEST_V3_v{}'.format(version_number)],
-                ['SIM', 'CLOSE', 'unclosed'],['SIM', 'NEW', 'godiland-base', mission_uuid], ['FLIGHT', 'ARM'], ['FLIGHT', 'MS_LOAD_PAYLOAD', 0, 'Food'],
+                ['SIM', 'PILOT', '{}_v{}'.format(pilot_name,version_number)],
+                ['SIM', 'CLOSE', 'unclosed'],['SIM', 'NEW', 'godiland-base', mission_uuid], ['FLIGHT', 'ARM'],
+                ['FLIGHT', 'MS_LOAD_PAYLOAD', 0, 'food'],['FLIGHT', 'MS_LOAD_PAYLOAD', 1, 'medicine'],
+                ['FLIGHT', 'MS_LOAD_PAYLOAD', 2, 'communication'],['FLIGHT', 'MS_LOAD_PAYLOAD', 3, 'food'],
                 ['FLIGHT', 'AUTO_TAKEOFF'],['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],
                 ['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],
                 ['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],['FLIGHT', 'MS_NO_ACTION'],
@@ -120,8 +128,8 @@ for combination in combinations:
 
 
 
-        subprocess.run(["docker", "exec", "q-agent_v3", "python3", "main.py", "--env-id", "apl-nav-godiland-v{}".format(version_number), "--drop_payload_agent",
-             "--qfunction", "./q_functions/local_v{}.qf".format(version_number)])
+        subprocess.run(["docker", "exec", "q-learner-container33", "python3", "main.py", "--env-id", "apl-nav-godiland-v{}".format(version_number), "--drop_payload_agent",
+             "--qfunction", "./q_functions/qf_v{}.qf".format(version_number)])
 
         print("DONE.")
         print("reseting.")

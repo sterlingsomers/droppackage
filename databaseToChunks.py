@@ -1,11 +1,10 @@
-import psycopg2
-import pickle
-import numpy as np
-import ast
-import json
-import yaml
-import mapquery
 import itertools
+import pickle
+
+import mapquery
+import numpy as np
+import psycopg2
+import yaml
 
 #To run this, make sure you have the file number and set the file number and arguments to chunk_by_environment appropriately
 #70, 50 --> 070050 and
@@ -44,6 +43,8 @@ for combination in combinations:
         line = cur.fetchone()
         previous_line = ''
         step = {}
+        #in this version a step starts with a raw observation and ends
+        #1. real_actions or 2. with events (real_action, event, env_step_info, reward)
         while line is not None:
             #print("LINE",line)
             if 'EVENT' in line:
@@ -158,7 +159,7 @@ def chunk_by_environment_and_drop(lat,lon):
     #print("CHUNKS", chunks)
 
     #get the area around the hiker
-    area_around_hiker = mapquery.terrain_request(lat=lat,lon=lon)
+    area_around_hiker = mapquery.terrain_request(lat=lat, lon=lon)
 
     area_around_hiker = [eval(x) for x in area_around_hiker]
     #print(area_around_hiker)

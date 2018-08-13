@@ -31,11 +31,16 @@ def fly_path(coordinates=[]):
             msg = ['FLIGHT', 'FLY_TO', coordinate[1], coordinate[0], 3]
             msg = ListToFormattedString(msg)
             sent = send_sock.sendto(msg.encode('utf-8'),mavsim_server)
-            while coordinate[0] != int(state['GLOBAL_POSITION_INT']['vx']) and int(coordinate[1] != state['GLOBAL_POSITION_INT']['vy']):
+            while coordinate[0] != int(state['GLOBAL_POSITION_INT']['vx']) or coordinate[1] != int(state['GLOBAL_POSITION_INT']['vy']):
+
                 msg = ['FLIGHT', 'MS_NO_ACTION']
                 msg = ListToFormattedString(msg)
                 sent = send_sock.sendto(msg.encode('utf-8'), mavsim_server)
                 time.sleep(0.1)
+                # print(coordinate[0], coordinate[1], state['GLOBAL_POSITION_INT']['vx'],
+                #       state['GLOBAL_POSITION_INT']['vy'])
+                # print(coordinate[0] != int(state['GLOBAL_POSITION_INT']['vx']) and coordinate[1] != int(
+                #     state['GLOBAL_POSITION_INT']['vy']))
 
                 # for msg in msgs:
                 #     msg = ListToFormattedString(msg)
