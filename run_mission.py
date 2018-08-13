@@ -24,8 +24,8 @@ def ListToFormattedString(alist):
 #TODO
 #NOTE: drone going to 90, 340 for [110, 70] -- WHY???
 #
-pilot_name = "TEST_Data_trained_areas_trained_headings"
-version_number = 5
+pilot_name = "Data_trained_areas_trained_headings"
+version_number = 1
 uuids = []
 hiker_positions_x = [70, 90, 110, 130, 150, 170, 190]
 hiker_positions_y = [50, 70, 90, 110]
@@ -34,7 +34,7 @@ combinations = list(itertools.product(hiker_positions_x,hiker_positions_y))
 #sed -i 3s:.*:"  <hiker_position>190, 110</hiker_position>": /cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v0.xml
 
 #v1
-#combinations = [[100,350],[100,450],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70]]#,[350,90],[430,110]]
+combinations = [[100,350],[100,450],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70]]#,[350,90],[430,110]]
 #
 # combinations = [[100,350],[100,450],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70],
 #                 [70,50],[90,50],[110,50],[130,50],[150,50],[170,50],[190,50],[70,70],[90,70],[110,70]]#, #v1
@@ -43,7 +43,7 @@ combinations = list(itertools.product(hiker_positions_x,hiker_positions_y))
 #combinations = [[70,50],[90,50],[110,50],[130,50],[150,50],[170,50],[190,50],[70,70],[90,70],[110,70]]
 
 #v5
-combinations = [[278,267],[284,277],[268,277],[261,269],[251,269],[243,271],[247,279],[287,263],[288,269]]
+#combinations = [[278,267],[284,277],[268,277],[261,269],[251,269],[243,271],[247,279],[287,263],[288,269]]
 #,[130,70],[150,70],[170,70],[190,70],[70,90],[90,90],[110,90], #v2
                 # [130,90],[150,90],[170,90],[70,110],[90,110],[110,110],[130,110],[150,110],[170,110], #v2
                 # [50,150],[50,250],[100,250],[100,50],  #v2
@@ -56,7 +56,7 @@ combinations = [[278,267],[284,277],[268,277],[261,269],[251,269],[243,271],[247
 
 for combination in combinations:
     print("COM",combination)
-    sed_command = "3s:.*:  <position>{}, {}</position>:".format(combination[0],combination[1])
+    sed_command = "3s:.*:  <hiker_position>{}, {}</hiker_position>:".format(combination[0],combination[1])
     subprocess.run(["docker", "exec", "q-learner-container33", "sed", "-i", sed_command,
                     "/cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v{}.xml".format(version_number)])
 
@@ -132,7 +132,7 @@ for combination in combinations:
 
 
         subprocess.run(["docker", "exec", "q-learner-container33", "python3", "main.py", "--env-id", "apl-nav-godiland-v{}".format(version_number), "--drop_payload_agent",
-             "--qfunction", "./q_functions/qf_v{}.qf".format(version_number)])
+             "--qfunction", "./q_functions/multi_redrop-v{}.qf".format(version_number)])
 
         print("DONE.")
         print("reseting.")
