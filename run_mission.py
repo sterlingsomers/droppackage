@@ -21,9 +21,11 @@ def ListToFormattedString(alist):
     s = '(' + ','.join(formatted_list) + ')'
     return s.format(*alist)
 
+#TODO
+#NOTE: drone going to 90, 340 for [110, 70] -- WHY???
 #
 pilot_name = "TEST_Data_trained_areas_trained_headings"
-version_number = 2
+version_number = 5
 uuids = []
 hiker_positions_x = [70, 90, 110, 130, 150, 170, 190]
 hiker_positions_y = [50, 70, 90, 110]
@@ -33,15 +35,15 @@ combinations = list(itertools.product(hiker_positions_x,hiker_positions_y))
 
 #v1
 #combinations = [[100,350],[100,450],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70]]#,[350,90],[430,110]]
-#v2
+#
 # combinations = [[100,350],[100,450],[100,150],[384,319],[270,50],[390,50],[410,50],[430,50],[230,70],[270,70],
 #                 [70,50],[90,50],[110,50],[130,50],[150,50],[170,50],[190,50],[70,70],[90,70],[110,70]]#, #v1
                 #[350,90],[410,90],[430,110]] #v1
 #v2
-combinations = [[70,50],[90,50],[110,50],[130,50],[150,50],[170,50],[190,50],[70,70],[90,70],[110,70]]
+#combinations = [[70,50],[90,50],[110,50],[130,50],[150,50],[170,50],[190,50],[70,70],[90,70],[110,70]]
 
 #v5
-#combinations = [[278,267],[278,273],[284,277],[268,277],[261,269],[251,269],[243,271],[247,279],[287,263],[288,269]]
+combinations = [[278,267],[284,277],[268,277],[261,269],[251,269],[243,271],[247,279],[287,263],[288,269]]
 #,[130,70],[150,70],[170,70],[190,70],[70,90],[90,90],[110,90], #v2
                 # [130,90],[150,90],[170,90],[70,110],[90,110],[110,110],[130,110],[150,110],[170,110], #v2
                 # [50,150],[50,250],[100,250],[100,50],  #v2
@@ -54,12 +56,12 @@ combinations = [[70,50],[90,50],[110,50],[130,50],[150,50],[170,50],[190,50],[70
 
 for combination in combinations:
     print("COM",combination)
-    sed_command = "3s:.*:  <hiker_position>{}, {}</hiker_position>:".format(combination[0],combination[1])
+    sed_command = "3s:.*:  <position>{}, {}</position>:".format(combination[0],combination[1])
     subprocess.run(["docker", "exec", "q-learner-container33", "sed", "-i", sed_command,
                     "/cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v{}.xml".format(version_number)])
 
     #look for Simon's navigation solution
-    grep_results = subprocess.getoutput("docker exec q-learner-container33 grep -n -m2 '>{}, {}<' /cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v{}.xml | tail -n1".format(combination[0],combination[1],version_number))
+    grep_results = subprocess.getoutput("docker exec q-learner-container33 grep -n -m2 '<position>{}, {}<' /cogle/cogle-mavsim/cogle_mavsim/assets/godiland_nav_v{}.xml | tail -n1".format(combination[0],combination[1],version_number))
     if grep_results:
         line_number = int(grep_results[0:grep_results.index(':')])
     line = ''
@@ -73,6 +75,7 @@ for combination in combinations:
             path_coordinates.append([x,y])
 
     print(path_coordinates)
+
     for i in range(10):
 
         mission_uuid = uuid.uuid4().hex
